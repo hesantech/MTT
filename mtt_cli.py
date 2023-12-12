@@ -4,13 +4,12 @@ import os
 
 '''
 Date 2023-09-20	
-Time 0.5	
+Time <no of mins>	
 Project	<Different projects>
 Task  <KT, Mentoring, On-call, US, Meeting, Writing, Automation>
 Division <NonBAU, BAU, Mentorship, Break/Fix, Learning, Training, Documentation>
 Details <Details about the task>
 '''
-
 class Item():
     def __init__(self):
         self.date = ""
@@ -19,8 +18,6 @@ class Item():
         self.task = ""
         self.division = ""
         self.details = ""
-        self.start = "00:00"
-        self.end = "00:00"
 
     def prompt_date(self, prompt):
         t = input(prompt)
@@ -69,72 +66,32 @@ class Item():
         self.details = t
 
 
-    def prompt_time(self):
-        # t = input(prompt)
-        # if t == '':
-        #     i = input("Enter number of hours: ")
-        #     try:
-        #         t = float(i) # Convert the input to a float
-        #         if i.count('.') == 1 and i[-1] != '.': # Check if the input has exactly one decimal place
-        #             print("Unrecognized no of hrs. Please enter correctly")
-        #             self.prompt_time(prompt)
-        #             return False
-        #     except ValueError:
-        #         print("Invalid input. Please enter a valid number of hrs.")
-        # self.time = t
-        # convert string to time.struct_time
-        t1 = time.strptime(self.start, "%H:%M")
-        t2 = time.strptime(self.end, "%H:%M")
-        dif = time.mktime(t2)-time.mktime(t1)
-        if dif < 0:
-            dif+=60*60*24
-        min = str(round(dif/60/60,1))
-        self.time = min
-    
-    def prompt_start(self, prompt):
+    def prompt_time(self, prompt):
         t = input(prompt)
         if t == '':
-            now = time.localtime()
-            t = tostr(now.tm_hour)+":"+tostr(now.tm_min)
-        elif len(t) != 5: # check for format
-            print("Unrecognized time. Please enter time in 24h format e.g. 00:00")
-            self.prompt_start(prompt)
-            return False # To end the current branch, otherwise becomes a tail-call
-        try: # check for valid time
-            time.strptime(t, "%H:%M")
-        except ValueError:
-            print("Unrecognized time. Please enter time in 24h format e.g. 00:00")
-            self.prompt_start(prompt)
-            return False # To end the current branch, otherwise becomes a tail-call
-
-        self.start = t
-
-    def prompt_end(self, prompt):
-        t = input(prompt)
-        if t == '':
-            i = input("Type in 'end' to stop timer... ")
-            while i == '' or i: # essentialy while True
-                if i == "end":
-                    now = time.localtime()
-                    t = tostr(now.tm_hour)+":"+tostr(now.tm_min)
-                    break
-                else:
-                    i = input("Type in 'end' to stop timer... ")
-        elif len(t) != 5:
-            print("Unrecognized time. Please enter time in 24h format e.g. 00:00")
-            self.prompt_end(prompt)
+            i = input("Enter number of minutes: ")
+            try:
+                t = int(i) # Convert the input to a int
+                if t <= 0: # 
+                    print("Please enter a non-negative number of minutes.")
+                    self.prompt_time(prompt)
+                    return False
+            except ValueError:
+                print("Invalid input. Please enter a valid number of mins.")
+        elif t.isalpha():
+            print("Invalid input. Please enter a valid number of mins.")
+            self.prompt_time(prompt)
             return False
-        try: # check for valid time
-            time.strptime(t, "%H:%M")
-        except ValueError:
-            print("Unrecognized time. Please enter time in 24h format e.g. 00:00")
-            self.prompt_end(prompt)
-            return False
-
-        self.end = t
+        elif int(t) <= 0:
+                 print("Please enter a number greater than zero.")
+                 self.prompt_time(prompt)
+                 return False
+        else:
+            hrs = str(round(int(t)/60,1))
+            self.time = hrs
 
     def display(self):
-        print(" Date: " + self.date + " Project: " + self.project + " Hours: " + self.time + " Task: "+ self.task + " Division: " + self.division + " Details: " + self.details + " was started at " + self.start + " and ended at " + self.end)
+        print(" Date: " + self.date + " Project: " + self.project + " Hours: " + self.time + " Task: "+ self.task + " Division: " + self.division + " Details: " + self.details)
 
 
 def export_to_csv(*items):
@@ -142,7 +99,7 @@ def export_to_csv(*items):
     filename = "time_tracker_"+str(now.tm_year)+'.csv'
     present = os.path.exists(filename)
     with open(filename, 'a', newline='') as f:
-        fieldnames = ['Date', 'Time' , 'Project', 'Task', 'Division', 'Details', 'Start_time', 'End_time']
+        fieldnames = ['Date', 'Time' , 'Project', 'Task', 'Division', 'Details']
         iw = csv.DictWriter(f, fieldnames=fieldnames, dialect='excel')
         if not present:
             iw.writeheader()
@@ -152,9 +109,7 @@ def export_to_csv(*items):
                          'Project': i.project,
                          'Task': i.task,
                          'Division': i.division,
-                         'Details': i.details,
-                         'Start_time': i.start,
-                         'End_time': i.end})
+                         'Details': i.details})
 
 def view_history():
     try:
@@ -180,29 +135,24 @@ def delete_last_record():
         # Read all lines from the CSV file
         with open(file_path, 'r') as file:
             lines = file.readlines()
-
         # Check if there is at least one line after title
         if len(lines) > 1:
             # Display the last line for confirmation
             print("Last record to be deleted:")
             print(lines[-1].strip())  # Remove leading/trailing whitespace
-
             # Ask for confirmation
             confirmation = input("Are you sure you want to delete the last record? (yes/no): ").lower()
-
             if confirmation == 'yes':
                 # Remove the last line
                 lines.pop()
                 # Write the updated content back to the file
                 with open(file_path, 'w', newline='') as file:
                     file.writelines(lines)
-
                 print("Last record deleted successfully.")
             else:
                 print("Deletion canceled. The file remains unchanged.")
         else:
             print("File is empty. Nothing to delete.")
-
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
     except Exception as e:
@@ -214,25 +164,21 @@ def handle_option(option):
     elif option.lower() == 'u':
         i = Item()
         i.prompt_date("Enter the date: (blank for today) ")
+        i.prompt_time("Enter number of minutes: ")
         i.prompt_project("Name of the Project: ")
         i.prompt_task("Name of the Task: ")
         i.prompt_division("Name of the Division: ")
         i.prompt_details("Name of the Details: ")
-        i.prompt_start("Enter start time: (blank for current) ")
-        i.prompt_end("Enter end time: (blank for timer) ")
-        i.prompt_time()
         i.display()
         export_to_csv(i)
     
         while input("Do you want to enter another item?(yY): ").lower() == 'y':
             i.prompt_date("Enter the date: (blank for today) ")
+            i.prompt_time("Enter number of minutes: ")
             i.prompt_project("Name of the Project: ")
             i.prompt_task("Name of the Task: ")
             i.prompt_division("Name of the Division: ")
             i.prompt_details("Name of the Details: ")
-            i.prompt_start("Enter start time: (blank for current) ")
-            i.prompt_end("Enter end time: (blank for timer) ")
-            i.prompt_time()
             i.display()
             export_to_csv(i)
     elif option.lower() == 'd':
@@ -246,4 +192,3 @@ if __name__ == "__main__":
         print("Exiting the program. Goodbye!")
     else:
        handle_option(user_option)
-

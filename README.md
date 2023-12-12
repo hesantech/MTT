@@ -3,7 +3,7 @@ Multi Time Tracker cli
 
 # Defentions
 Date 2023-09-20	\
-Time 0.5 \
+Time \<no of mins\> \
 Project	\<Different projects\> \
 Task  \<KT, Mentoring, On-call, US, Meeting, Writing, Automation\> \
 Division \<NonBAU, BAU, Mentorship, Break/Fix, Learning, Training, Documentation\> \
